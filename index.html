@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jailex 2.0 HUD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div id="sidebar">
+    <div class="tab" data-tab="playback">Playback</div>
+    <div class="tab" data-tab="voices">Voices</div>
+    <div class="tab" data-tab="chat">Chat</div>
+    <div class="tab" data-tab="keywords">Keywords</div>
+    <div class="tab" data-tab="timers">Timers</div>
+    <div class="tab" data-tab="overlay">Overlay</div>
+    <div class="tab" data-tab="connections">Connections</div>
+</div>
+
+<div id="content">
+
+    <!-- PLAYBACK TAB -->
+    <div class="panel" id="playback">
+        <h2>Playback</h2>
+        <button id="stopTTS">Stop TTS</button>
+        <button id="clearChat">Clear Chat</button>
+    </div>
+
+    <!-- VOICES TAB -->
+    <div class="panel" id="voices">
+        <h2>Voices</h2>
+        <label>Choose Voice</label>
+        <select id="voiceSelect"></select>
+    </div>
+
+    <!-- CHAT TAB -->
+    <div class="panel" id="chat">
+        <h2>Chat</h2>
+        <div id="chatLog"></div>
+    </div>
+
+    <!-- KEYWORDS TAB -->
+    <div class="panel" id="keywords">
+        <h2>Keywords</h2>
+        <input id="keywordInput" placeholder="Add keyword">
+        <button id="addKeyword">Add</button>
+        <ul id="keywordList"></ul>
+    </div>
+
+    <!-- TIMERS TAB -->
+    <div class="panel" id="timers">
+        <h2>Timers</h2>
+        <label>Countdown (seconds)</label>
+        <input id="timerSeconds" type="number" value="60">
+        <button id="startTimer">Start</button>
+        <button id="stopTimer">Stop</button>
+        <div id="timerDisplay">60</div>
+    </div>
+
+    <!-- OVERLAY TAB -->
+    <div class="panel" id="overlay">
+        <h2>Chat Overlay</h2>
+
+        <label>Kick Chatroom ID</label>
+        <input id="kickRoomId" value="92474944">
+
+        <label>Message Duration (seconds)</label>
+        <input id="msgDuration" type="number" value="0">
+
+        <label>Max Messages on Screen</label>
+        <input id="maxMessages" type="number" value="15">
+
+        <label>Background Opacity (0–1)</label>
+        <input id="bgOpacity" type="number" step="0.1" value="0.7">
+
+        <label>Font Size (px)</label>
+        <input id="fontSize" type="number" value="16">
+
+        <label>
+            <input type="checkbox" id="showBadges" checked>
+            Show Platform Badges
+        </label>
+
+        <button id="generateOverlayUrl">Generate Lightstream URL</button>
+        <div id="overlayUrlOutput"></div>
+
+        <button id="previewOverlay">Preview Overlay</button>
+
+        <h3>Lightstream Setup</h3>
+        <p>Click "Generate Lightstream URL" above</p>
+        <p>Copy the URL</p>
+        <p>In Lightstream → Widgets → Custom URL → Paste</p>
+
+        <h3>OBS Setup</h3>
+        <p>Sources → + → Browser</p>
+        <p>Paste the URL</p>
+        <p>Width: 400, Height: 600</p>
+    </div>
+
+    <!-- CONNECTIONS TAB -->
+    <div class="panel" id="connections">
+        <h2>Connections</h2>
+
+        <h3>Kick</h3>
+        <label>Kick Username</label>
+        <input id="kickUsername" value="justquitbro7">
+        <p>Enable Kick (static for now)</p>
+        <p>Status: <span style="color:lime">Connected (auto)</span></p>
+
+        <h3>Twitch</h3>
+        <label>Twitch Channel Name</label>
+        <input id="twitchChannel" value="justquitbro7">
+
+        <label>Twitch OAuth Token</label>
+        <input id="twitchToken" placeholder="oauth:xxxxxxxxxxxxxx">
+
+        <p>Get your token at twitchapps.com/tmi</p>
+
+        <label>
+            <input type="checkbox" id="enableTwitch">
+            Enable Twitch Chat
+        </label>
+
+        <p>Status: <span id="twitchStatus" style="color:red">Disconnected</span></p>
+
+        <p>Kick is connected automatically. For Twitch, enter your channel name and OAuth token, then enable to start receiving chat messages.</p>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
