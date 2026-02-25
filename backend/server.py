@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,10 +6,12 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 import httpx
+import secrets
+import string
 
 
 ROOT_DIR = Path(__file__).parent
@@ -38,10 +40,67 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Overlay Config Models
+class OverlayConfigCreate(BaseModel):
+    kickChannel: Optional[str] = ""
+    kickChatroomId: Optional[str] = ""
+    twitchChannel: Optional[str] = ""
+    twitchToken: Optional[str] = ""
+    maxMessages: Optional[int] = 15
+    showBadges: Optional[bool] = True
+    fontSize: Optional[int] = 18
+    bgOpacity: Optional[float] = 0.6
+
+class OverlayConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str
+    kickChannel: str = ""
+    kickChatroomId: str = ""
+    twitchChannel: str = ""
+    twitchToken: str = ""
+    maxMessages: int = 15
+    showBadges: bool = True
+    fontSize: int = 18
+    bgOpacity: float = 0.6
+    createdAt: str = ""
+
+def generate_short_id(length=6):
+    """Generate a short alphanumeric ID"""
+    chars = string.ascii_lowercase + string.digits
+    return ''.join(secrets.choice(chars) for _ in range(length))
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
+
+# Overlay Config endpoints
+@api_router.post("/overlay/config")
+async def create_overlay_config(config: OverlayConfigCreate):
+    """Save overlay config and return a short ID"""
+    short_id = generate_short_id()
+    
+    # Make sure ID is unique
+    while await db.overlay_configs.find_one({"id": short_id}):
+        short_id = generate_short_id()
+    
+    doc = {
+        "id": short_id,
+        **config.model_dump(),
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.overlay_configs.insert_one(doc)
+    return {"id": short_id, "message": "Config saved"}
+
+@api_router.get("/overlay/config/{config_id}")
+async def get_overlay_config(config_id: str):
+    """Get overlay config by short ID"""
+    config = await db.overlay_configs.find_one({"id": config_id}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Config not found")
+    return config
 
 # Kick API Proxy to bypass CORS
 @api_router.get("/kick/channel/{channel_name}")
