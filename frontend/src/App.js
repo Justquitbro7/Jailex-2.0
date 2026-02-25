@@ -13,6 +13,7 @@ function App() {
 
   const [voices, setVoices] = useState([]);
   const [kickVoiceName, setKickVoiceName] = useState("");
+  const [twitchVoiceName, setTwitchVoiceName] = useState("");
   const [timerVoiceName, setTimerVoiceName] = useState("");
   const [volume, setVolume] = useState(1);
   const [rate, setRate] = useState(1);
