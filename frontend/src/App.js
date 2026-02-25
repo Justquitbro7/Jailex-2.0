@@ -42,6 +42,7 @@ function App() {
 
   // Connections state
   const [kickUsername, setKickUsername] = useState("justquitbro7");
+  const [kickChatroomId, setKickChatroomId] = useState("");
   const [twitchUsername, setTwitchUsername] = useState("justquitbro7");
   const [twitchToken, setTwitchToken] = useState("");
   const [twitchEnabled, setTwitchEnabled] = useState(false);
