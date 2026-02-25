@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 import uuid
 from datetime import datetime, timezone
+import httpx
 
 
 ROOT_DIR = Path(__file__).parent
@@ -41,6 +42,25 @@ class StatusCheckCreate(BaseModel):
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
+
+# Kick API Proxy to bypass CORS
+@api_router.get("/kick/channel/{channel_name}")
+async def get_kick_channel(channel_name: str):
+    """Proxy endpoint for Kick channel API to bypass CORS restrictions"""
+    try:
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.get(
+                f"https://kick.com/api/v2/channels/{channel_name}",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Accept": "application/json"
+                },
+                timeout=10.0
+            )
+            return response.json()
+    except Exception as e:
+        logger.error(f"Kick API proxy error: {e}")
+        return {"error": str(e)}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
