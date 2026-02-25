@@ -53,6 +53,8 @@ function ChatOverlay() {
     if (params.get("badges")) newConfig.showBadges = params.get("badges") !== "false";
     if (params.get("size")) newConfig.fontSize = parseInt(params.get("size")) || 18;
     if (params.get("bg")) newConfig.bgOpacity = parseFloat(params.get("bg")) || 0.6;
+    // chatroom ID can be passed directly to skip API call
+    if (params.get("chatroomId")) newConfig.kickChatroomId = params.get("chatroomId");
 
     setConfig(newConfig);
   }, []);
