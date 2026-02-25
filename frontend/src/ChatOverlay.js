@@ -237,7 +237,7 @@ function ChatOverlay() {
       if (ws) ws.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [config.twitchChannel, config.twitchToken, addMessage]);
+  }, [configLoaded, config.twitchChannel, config.twitchToken, addMessage]);
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
