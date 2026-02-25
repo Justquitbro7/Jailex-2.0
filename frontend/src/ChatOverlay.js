@@ -181,7 +181,7 @@ function ChatOverlay() {
 
   // Connect to Twitch
   useEffect(() => {
-    if (!config.twitchChannel || !config.twitchToken) return;
+    if (!configLoaded || !config.twitchChannel || !config.twitchToken) return;
 
     let ws = null;
     let reconnectTimeout = null;
