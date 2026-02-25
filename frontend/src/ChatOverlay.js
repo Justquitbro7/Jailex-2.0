@@ -24,6 +24,7 @@ function ChatOverlay() {
   const [messages, setMessages] = useState([]);
   const [config, setConfig] = useState({
     kickChannel: "",
+    kickChatroomId: "",
     twitchChannel: "",
     twitchToken: "",
     maxMessages: 15,
