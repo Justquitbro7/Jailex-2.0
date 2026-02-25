@@ -563,6 +563,13 @@ function App() {
           Timers
         </button>
         <button 
+          className={`tab-button ${activeTab === "tab-overlay" ? "active" : ""}`}
+          data-testid="tab-overlay-btn"
+          onClick={() => setActiveTab("tab-overlay")}
+        >
+          Overlay
+        </button>
+        <button 
           className={`tab-button ${activeTab === "tab-connections" ? "active" : ""}`}
           data-testid="tab-connections-btn"
           onClick={() => setActiveTab("tab-connections")}
@@ -571,7 +578,7 @@ function App() {
         </button>
 
         <div className="version-tag">
-          Version 1.3.0 (Keywords Filter)
+          Version 1.4.0 (Chat Overlay)
         </div>
       </div>
 
