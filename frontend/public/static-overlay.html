@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Overlay</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: transparent !important; 
+      overflow: hidden;
+      font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    }
+    .chat-overlay {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+    }
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chat-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 6px;
+      font-size: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .platform-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .badge-kick { background: #53fc18; color: #000; }
+    .badge-twitch { background: #9146FF; color: #fff; }
+    .badge-timer { background: #ff7a18; color: #fff; }
+    .username { font-weight: 700; }
+    .username-kick { color: #53fc18; }
+    .username-twitch { color: #9146FF; }
+    .username-timer { color: #ff7a18; }
+    .message-text { color: #ffffff; word-break: break-word; }
+    .loading { color: #888; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="chat-overlay">
+    <div id="messages" class="chat-messages">
+      <div class="loading">Loading chat overlay...</div>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const MAX_MESSAGES = 15;
+    let config = {
+      kickChannel: '',
+      kickChatroomId: '',
+      twitchChannel: '',
+      twitchToken: ''
+    };
+
+    // Get config ID from URL path
+    const pathParts = window.location.pathname.split('/');
+    const configId = pathParts[pathParts.length - 1];
+
+    // Load config from server
+    async function loadConfig() {
+      if (!configId || configId === 'static-overlay.html') {
+        messagesDiv.innerHTML = '<div class="loading">No config ID provided. Use /api/static-overlay/YOUR_CONFIG_ID</div>';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/overlay/config/' + configId);
+        if (res.ok) {
+          config = await res.json();
+          messagesDiv.innerHTML = '';
+          connectToChats();
+        } else {
+          messagesDiv.innerHTML = '<div class="loading">Config not found: ' + configId + '</div>';
+        }
+      } catch (e) {
+        messagesDiv.innerHTML = '<div class="loading">Error loading config</div>';
+        console.error(e);
+      }
+    }
+
+    function addMessage(platform, username, text) {
+      const div = document.createElement('div');
+      div.className = 'chat-message';
+      
+      const badge = document.createElement('span');
+      badge.className = 'platform-badge badge-' + platform;
+      badge.textContent = platform === 'kick' ? 'K' : platform === 'twitch' ? 'T' : '⏱';
+      
+      const user = document.createElement('span');
+      user.className = 'username username-' + platform;
+      user.textContent = username + ':';
+      
+      const msg = document.createElement('span');
+      msg.className = 'message-text';
+      msg.textContent = text;
+      
+      div.appendChild(badge);
+      div.appendChild(user);
+      div.appendChild(msg);
+      messagesDiv.appendChild(div);
+      
+      // Remove old messages
+      while (messagesDiv.children.length > MAX_MESSAGES) {
+        messagesDiv.removeChild(messagesDiv.firstChild);
+      }
+    }
+
+    function connectToChats() {
+      // Connect to Kick
+      if (config.kickChatroomId) {
+        const kickWs = new WebSocket(
+          'wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false'
+        );
+        
+        kickWs.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          
+          if (msg.event === 'pusher:connection_established') {
+            kickWs.send(JSON.stringify({
+              event: 'pusher:subscribe',
+              data: { channel: 'chatrooms.' + config.kickChatroomId + '.v2' }
+            }));
+            console.log('Kick connected to chatroom:', config.kickChatroomId);
+          }
+          
+          if (msg.event === 'App\\Events\\ChatMessageEvent') {
+            const payload = JSON.parse(msg.data);
+            addMessage('kick', payload.sender?.username || 'Unknown', payload.content || '');
+          }
+        };
+        
+        kickWs.onclose = () => setTimeout(() => connectToChats(), 5000);
+      }
+
+      // Connect to Twitch
+      if (config.twitchChannel && config.twitchToken) {
+        const twitchWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+        
+        twitchWs.onopen = () => {
+          const token = config.twitchToken.startsWith('oauth:') ? config.twitchToken : 'oauth:' + config.twitchToken;
+          twitchWs.send('PASS ' + token);
+          twitchWs.send('NICK ' + config.twitchChannel.toLowerCase());
+          twitchWs.send('JOIN #' + config.twitchChannel.toLowerCase());
+          console.log('Twitch connected');
+        };
+        
+        twitchWs.onmessage = (event) => {
+          const message = event.data;
+          
+          if (message.startsWith('PING')) {
+            twitchWs.send('PONG :tmi.twitch.tv');
+            return;
+          }
+          
+          const match = message.match(/:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)/);
+          if (match) {
+            addMessage('twitch', match[1], match[2].trim());
+          }
+        };
+        
+        twitchWs.onclose = () => setTimeout(() => connectToChats(), 5000);
+      }
+    }
+
+    loadConfig();
+  </script>
+</body>
+</html>
