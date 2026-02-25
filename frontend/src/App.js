@@ -89,9 +89,17 @@ function App() {
   useEffect(() => {
     const connectKick = async () => {
       try {
-        const res = await fetch(`https://kick.com/api/v2/channels/${KICK_CHANNEL}`);
+        // Use backend proxy to bypass CORS
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
+        const res = await fetch(`${backendUrl}/api/kick/channel/${KICK_CHANNEL}`);
         const data = await res.json();
         const chatroomId = data.chatroom?.id;
+
+        if (!chatroomId) {
+          console.error("Could not get Kick chatroom ID");
+          setTimeout(connectKick, 10000);
+          return;
+        }
 
         const ws = new WebSocket(
           "wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false"
@@ -124,6 +132,7 @@ function App() {
 
         ws.onclose = () => setTimeout(connectKick, 5000);
       } catch (err) {
+        console.error("Kick connection error:", err);
         setTimeout(connectKick, 10000);
       }
     };
