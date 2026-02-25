@@ -78,12 +78,15 @@ function ChatOverlay() {
 
     const connectKick = async () => {
       try {
-        const res = await fetch(`https://kick.com/api/v2/channels/${config.kickChannel}`);
+        // Use backend proxy to bypass CORS
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+        const res = await fetch(`${backendUrl}/api/kick/channel/${config.kickChannel}`);
         const data = await res.json();
         const chatroomId = data.chatroom?.id;
 
         if (!chatroomId) {
           console.error("Could not get Kick chatroom ID");
+          reconnectTimeout = setTimeout(connectKick, 10000);
           return;
         }
 
