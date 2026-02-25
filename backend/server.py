@@ -164,6 +164,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Middleware to handle frame embedding for Lightstream
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+class FrameOptionsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Remove X-Frame-Options to allow embedding in Lightstream
+        if "x-frame-options" in response.headers:
+            del response.headers["x-frame-options"]
+        # Add Content-Security-Policy to allow Lightstream
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'self' *.golightstream.com *.lightstream.com *"
+        return response
+
+app.add_middleware(FrameOptionsMiddleware)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
