@@ -984,8 +984,21 @@ function App() {
                 <button 
                   onClick={() => {
                     const url = `${window.location.origin}/overlay?kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
-                    navigator.clipboard.writeText(url);
-                    alert("URL copied to clipboard!");
+                    // Fallback copy method for environments where Clipboard API is blocked
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                      document.execCommand('copy');
+                      alert("URL copied to clipboard!");
+                    } catch (err) {
+                      // If copy fails, show the URL in a prompt for manual copy
+                      prompt("Copy this URL:", url);
+                    }
+                    document.body.removeChild(textArea);
                   }}
                   data-testid="copy-overlay-url-btn"
                 >
