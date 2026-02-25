@@ -44,6 +44,8 @@ function App() {
   const [twitchUsername, setTwitchUsername] = useState("justquitbro7");
   const [twitchToken, setTwitchToken] = useState("");
   const [twitchEnabled, setTwitchEnabled] = useState(false);
+  const [twitchConnected, setTwitchConnected] = useState(false);
+  const [twitchStatus, setTwitchStatus] = useState("Disconnected");
 
   const [activeTab, setActiveTab] = useState("tab-playback");
   const [chatLog, setChatLog] = useState([]);
@@ -53,6 +55,7 @@ function App() {
   const speechifyAudioRef = useRef(null);
   const queueRef = useRef(queue);
   const isSpeakingRef = useRef(isSpeaking);
+  const twitchWsRef = useRef(null);
 
   // Update refs when state changes
   useEffect(() => {
