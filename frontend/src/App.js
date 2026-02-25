@@ -1074,6 +1074,13 @@ function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUse
   const [shortUrl, setShortUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
+  
+  // Customization options
+  const [maxMessages, setMaxMessages] = useState(15);
+  const [messageDuration, setMessageDuration] = useState(0); // 0 = stay forever
+  const [bgOpacity, setBgOpacity] = useState(0.7);
+  const [fontSize, setFontSize] = useState(16);
+  const [showBadges, setShowBadges] = useState(true);
 
   const generateShortUrl = async () => {
     setIsGenerating(true);
@@ -1089,10 +1096,11 @@ function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUse
           kickChatroomId: kickChatroomId,
           twitchChannel: twitchUsername,
           twitchToken: twitchToken,
-          maxMessages: 15,
-          showBadges: true,
-          fontSize: 18,
-          bgOpacity: 0.6
+          maxMessages: maxMessages,
+          messageDuration: messageDuration,
+          showBadges: showBadges,
+          fontSize: fontSize,
+          bgOpacity: bgOpacity
         })
       });
       
