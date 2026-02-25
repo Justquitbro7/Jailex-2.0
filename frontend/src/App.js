@@ -1157,6 +1157,78 @@ function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUse
         </div>
       </div>
 
+      <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
+
+      <h3 style={{ marginTop: 0, marginBottom: "12px" }}>Overlay Settings</h3>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+        <div>
+          <label>Message Duration (seconds)</label>
+          <input 
+            type="number" 
+            min="0"
+            max="300"
+            value={messageDuration}
+            onChange={(e) => setMessageDuration(parseInt(e.target.value) || 0)}
+            data-testid="message-duration-input"
+          />
+          <div className="hint">0 = messages stay forever</div>
+        </div>
+
+        <div>
+          <label>Max Messages on Screen</label>
+          <input 
+            type="number" 
+            min="1"
+            max="50"
+            value={maxMessages}
+            onChange={(e) => setMaxMessages(parseInt(e.target.value) || 15)}
+            data-testid="max-messages-input"
+          />
+        </div>
+
+        <div>
+          <label>Background Opacity: {bgOpacity}</label>
+          <input 
+            type="range" 
+            min="0"
+            max="1"
+            step="0.1"
+            value={bgOpacity}
+            onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+            data-testid="bg-opacity-input"
+          />
+          <div className="hint">0 = fully transparent, 1 = solid</div>
+        </div>
+
+        <div>
+          <label>Font Size: {fontSize}px</label>
+          <input 
+            type="range" 
+            min="12"
+            max="32"
+            step="1"
+            value={fontSize}
+            onChange={(e) => setFontSize(parseInt(e.target.value))}
+            data-testid="font-size-input"
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <input 
+            type="checkbox" 
+            checked={showBadges}
+            onChange={(e) => setShowBadges(e.target.checked)}
+            data-testid="show-badges-input"
+          />
+          Show Platform Badges (K for Kick, T for Twitch)
+        </label>
+      </div>
+
+      <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
+
       <div style={{ marginBottom: "16px" }}>
         <button 
           onClick={generateShortUrl}
