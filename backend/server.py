@@ -52,12 +52,20 @@ async def get_kick_channel(channel_name: str):
             response = await http_client.get(
                 f"https://kick.com/api/v2/channels/{channel_name}",
                 headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                    "Accept": "application/json"
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/json",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Referer": "https://kick.com/",
+                    "Origin": "https://kick.com"
                 },
-                timeout=10.0
+                timeout=10.0,
+                follow_redirects=True
             )
-            return response.json()
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Kick API returned status {response.status_code}: {response.text}")
+                return {"error": f"Kick API returned status {response.status_code}"}
     except Exception as e:
         logger.error(f"Kick API proxy error: {e}")
         return {"error": str(e)}
