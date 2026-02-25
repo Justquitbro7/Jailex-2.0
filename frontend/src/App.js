@@ -1062,7 +1062,8 @@ function App() {
             <div style={{ fontSize: "12px", opacity: 0.8 }}>
               <p style={{ marginBottom: "8px" }}>You can customize the overlay with these URL parameters:</p>
               <ul style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
-                <li><code>kick=username</code> - Kick channel name</li>
+                <li><code>chatroomId=12345</code> - <strong>Required for Kick</strong> - Your Kick chatroom ID</li>
+                <li><code>kick=username</code> - Kick channel name (for display)</li>
                 <li><code>twitch=username</code> - Twitch channel name</li>
                 <li><code>token=oauth:xxx</code> - Twitch OAuth token</li>
                 <li><code>max=15</code> - Maximum messages shown (default: 15)</li>
