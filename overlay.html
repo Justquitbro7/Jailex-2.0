@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jailex Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            background: transparent;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        #chatContainer {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .msg {
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .kickBadge {
+            background: #53fc18;
+            color: black;
+        }
+
+        .twitchBadge {
+            background: #9146FF;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatContainer"></div>
+
+<script>
+// ------------------------------
+// URL PARAMS
+// ------------------------------
+const params = new URLSearchParams(window.location.search);
+
+const KICK_ROOM = params.get("kick") || "92474944";
+const MSG_DURATION = parseInt(params.get("dur") || "0");
+const MAX_MESSAGES = parseInt(params.get("max") || "15");
+const BG_OPACITY = parseFloat(params.get("op") || "0.7");
+const FONT_SIZE = parseInt(params.get("fs") || "16");
+const SHOW_BADGES = params.get("badges") === "1";
+
+// ------------------------------
+// CHAT CONTAINER
+// ------------------------------
+const chatContainer = document.getElementById("chatContainer");
+
+// ------------------------------
+// MESSAGE RENDERING
+// ------------------------------
+function renderMessage(platform, user, text) {
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.style.background = `rgba(0,0,0,${BG_OPACITY})`;
+    div.style.fontSize = FONT_SIZE + "px";
+
+    // Badge
+    if (SHOW_BADGES) {
+        const badge = document.createElement("span");
+        badge.className = "badge " + (platform === "Kick" ? "kickBadge" : "twitchBadge");
+        badge.textContent = platform === "Kick" ? "K" : "T";
+        div.appendChild(badge);
+    }
+
+    // Username + message
+    const content = document.createElement("span");
+    content.innerHTML = `<strong>${user}:</strong> ${text}`;
+    div.appendChild(content);
+
+    chatContainer.appendChild(div);
+
+    // Remove oldest if over limit
+    while (chatContainer.children.length > MAX_MESSAGES) {
+        chatContainer.removeChild(chatContainer.firstChild);
+    }
+
+    // Instant disappear after duration
+    if (MSG_DURATION > 0) {
+        setTimeout(() => {
+            div.remove();
+        }, MSG_DURATION * 1000);
+    }
+}
+
+// ------------------------------
+// KICK CHAT
+// ------------------------------
+function connectKick() {
+    const ws = new WebSocket(`wss://ws.kick.com/chatroom/${KICK_ROOM}`);
+
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "message") {
+                const user = data.data.sender.username;
+                const msg = data.data.content;
+                renderMessage("Kick", user, msg);
+            }
+        } catch (e) {}
+    };
+
+    ws.onclose = () => setTimeout(connectKick, 3000);
+}
+
+connectKick();
+
+// ------------------------------
+// TWITCH CHAT (optional)
+// ------------------------------
+let twitchEnabled = false;
+
+window.addEventListener("message", (event) => {
+    if (event.data.type === "twitchMessage") {
+        twitchEnabled = true;
+        renderMessage("Twitch", event.data.user, event.data.msg);
+    }
+});
+</script>
+
+</body>
+</html>
