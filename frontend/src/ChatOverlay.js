@@ -22,6 +22,7 @@ const TimerIcon = () => (
 
 function ChatOverlay() {
   const [messages, setMessages] = useState([]);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [config, setConfig] = useState({
     kickChannel: "",
     kickChatroomId: "",
@@ -33,31 +34,51 @@ function ChatOverlay() {
     bgOpacity: 0.6
   });
 
-  // Load config from URL params or localStorage
+  // Load config from short ID, URL params, or localStorage
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const savedConfig = localStorage.getItem("jailexOverlayConfig");
-    
-    let newConfig = { ...config };
-    
-    if (savedConfig) {
-      try {
-        newConfig = { ...newConfig, ...JSON.parse(savedConfig) };
-      } catch (e) {}
-    }
+    const loadConfig = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const configId = params.get("id");
+      
+      let newConfig = { ...config };
+      
+      // If short ID provided, fetch config from server
+      if (configId) {
+        try {
+          const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
+          const res = await fetch(`${backendUrl}/api/overlay/config/${configId}`);
+          if (res.ok) {
+            const serverConfig = await res.json();
+            newConfig = { ...newConfig, ...serverConfig };
+          }
+        } catch (e) {
+          console.error("Failed to load config:", e);
+        }
+      } else {
+        // Fall back to localStorage
+        const savedConfig = localStorage.getItem("jailexOverlayConfig");
+        if (savedConfig) {
+          try {
+            newConfig = { ...newConfig, ...JSON.parse(savedConfig) };
+          } catch (e) {}
+        }
+        
+        // URL params override localStorage
+        if (params.get("kick")) newConfig.kickChannel = params.get("kick");
+        if (params.get("twitch")) newConfig.twitchChannel = params.get("twitch");
+        if (params.get("token")) newConfig.twitchToken = params.get("token");
+        if (params.get("max")) newConfig.maxMessages = parseInt(params.get("max")) || 15;
+        if (params.get("badges")) newConfig.showBadges = params.get("badges") !== "false";
+        if (params.get("size")) newConfig.fontSize = parseInt(params.get("size")) || 18;
+        if (params.get("bg")) newConfig.bgOpacity = parseFloat(params.get("bg")) || 0.6;
+        if (params.get("chatroomId")) newConfig.kickChatroomId = params.get("chatroomId");
+      }
 
-    // URL params override localStorage
-    if (params.get("kick")) newConfig.kickChannel = params.get("kick");
-    if (params.get("twitch")) newConfig.twitchChannel = params.get("twitch");
-    if (params.get("token")) newConfig.twitchToken = params.get("token");
-    if (params.get("max")) newConfig.maxMessages = parseInt(params.get("max")) || 15;
-    if (params.get("badges")) newConfig.showBadges = params.get("badges") !== "false";
-    if (params.get("size")) newConfig.fontSize = parseInt(params.get("size")) || 18;
-    if (params.get("bg")) newConfig.bgOpacity = parseFloat(params.get("bg")) || 0.6;
-    // chatroom ID can be passed directly to skip API call
-    if (params.get("chatroomId")) newConfig.kickChatroomId = params.get("chatroomId");
-
-    setConfig(newConfig);
+      setConfig(newConfig);
+      setConfigLoaded(true);
+    };
+    
+    loadConfig();
   }, []);
 
   // Add message helper
