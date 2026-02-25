@@ -984,38 +984,6 @@ function App() {
           />
         )}
 
-            <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
-
-            <h3 style={{ marginTop: 0 }}>OBS Setup Instructions</h3>
-            <ol style={{ fontSize: "13px", opacity: 0.9, paddingLeft: "20px", lineHeight: "1.8" }}>
-              <li>In OBS, click the <strong>+</strong> button under Sources</li>
-              <li>Select <strong>Browser</strong></li>
-              <li>Name it "Chat Overlay" and click OK</li>
-              <li>Paste the Overlay URL above into the URL field</li>
-              <li>Set Width to <strong>400</strong> and Height to <strong>600</strong> (adjust as needed)</li>
-              <li>Check <strong>"Shutdown source when not visible"</strong></li>
-              <li>Click OK</li>
-            </ol>
-
-            <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
-
-            <h3>URL Parameters</h3>
-            <div style={{ fontSize: "12px", opacity: 0.8 }}>
-              <p style={{ marginBottom: "8px" }}>You can customize the overlay with these URL parameters:</p>
-              <ul style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
-                <li><code>chatroomId=12345</code> - <strong>Required for Kick</strong> - Your Kick chatroom ID</li>
-                <li><code>kick=username</code> - Kick channel name (for display)</li>
-                <li><code>twitch=username</code> - Twitch channel name</li>
-                <li><code>token=oauth:xxx</code> - Twitch OAuth token</li>
-                <li><code>max=15</code> - Maximum messages shown (default: 15)</li>
-                <li><code>badges=true/false</code> - Show platform badges (default: true)</li>
-                <li><code>size=18</code> - Font size in pixels (default: 18)</li>
-                <li><code>bg=0.6</code> - Background opacity 0-1 (default: 0.6)</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
         {/* CONNECTIONS TAB */}
         {activeTab === "tab-connections" && (
           <div className="panel">
