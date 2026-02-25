@@ -102,6 +102,121 @@ async def get_overlay_config(config_id: str):
         raise HTTPException(status_code=404, detail="Config not found")
     return config
 
+# Static overlay endpoint with proper headers for Lightstream
+from starlette.responses import HTMLResponse
+
+@api_router.get("/stream/{config_id}", response_class=HTMLResponse)
+async def serve_static_overlay(config_id: str):
+    """Serve static overlay HTML with headers for Lightstream compatibility"""
+    
+    # Get config to verify it exists
+    config = await db.overlay_configs.find_one({"id": config_id}, {"_id": 0})
+    if not config:
+        return HTMLResponse(
+            content="<html><body style='background:transparent;color:white;'>Config not found</body></html>",
+            status_code=404
+        )
+    
+    html_content = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Overlay</title>
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{ 
+      background: transparent !important; 
+      overflow: hidden;
+      font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    }}
+    .chat-overlay {{
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+    }}
+    .chat-messages {{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }}
+    .chat-message {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 6px;
+      font-size: 16px;
+    }}
+    .platform-badge {{
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }}
+    .badge-kick {{ background: #53fc18; color: #000; }}
+    .badge-twitch {{ background: #9146FF; color: #fff; }}
+    .username {{ font-weight: 700; }}
+    .username-kick {{ color: #53fc18; }}
+    .username-twitch {{ color: #9146FF; }}
+    .message-text {{ color: #ffffff; word-break: break-word; }}
+  </style>
+</head>
+<body>
+  <div class="chat-overlay">
+    <div id="messages" class="chat-messages"></div>
+  </div>
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const MAX_MESSAGES = {config.get('maxMessages', 15)};
+    const config = {{"kickChatroomId": "{config.get('kickChatroomId', '')}", "twitchChannel": "{config.get('twitchChannel', '')}", "twitchToken": "{config.get('twitchToken', '')}"}};
+
+    function addMessage(platform, username, text) {{
+      const div = document.createElement('div');
+      div.className = 'chat-message';
+      div.innerHTML = '<span class="platform-badge badge-' + platform + '">' + (platform === 'kick' ? 'K' : 'T') + '</span><span class="username username-' + platform + '">' + username + ':</span><span class="message-text">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+      messagesDiv.appendChild(div);
+      while (messagesDiv.children.length > MAX_MESSAGES) messagesDiv.removeChild(messagesDiv.firstChild);
+    }}
+
+    if (config.kickChatroomId) {{
+      const kickWs = new WebSocket('wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false');
+      kickWs.onmessage = (e) => {{
+        const msg = JSON.parse(e.data);
+        if (msg.event === 'pusher:connection_established') kickWs.send(JSON.stringify({{event:'pusher:subscribe',data:{{channel:'chatrooms.'+config.kickChatroomId+'.v2'}}}}));
+        if (msg.event === 'App\\\\Events\\\\ChatMessageEvent') {{ const p = JSON.parse(msg.data); addMessage('kick', p.sender?.username||'Unknown', p.content||''); }}
+      }};
+      kickWs.onclose = () => setTimeout(() => location.reload(), 5000);
+    }}
+
+    if (config.twitchChannel && config.twitchToken) {{
+      const twitchWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+      twitchWs.onopen = () => {{ const t = config.twitchToken.startsWith('oauth:') ? config.twitchToken : 'oauth:'+config.twitchToken; twitchWs.send('PASS '+t); twitchWs.send('NICK '+config.twitchChannel.toLowerCase()); twitchWs.send('JOIN #'+config.twitchChannel.toLowerCase()); }};
+      twitchWs.onmessage = (e) => {{ if (e.data.startsWith('PING')) {{ twitchWs.send('PONG :tmi.twitch.tv'); return; }} const m = e.data.match(/:(\\w+)!\\w+@\\w+\\.tmi\\.twitch\\.tv PRIVMSG #\\w+ :(.+)/); if (m) addMessage('twitch', m[1], m[2].trim()); }};
+      twitchWs.onclose = () => setTimeout(() => location.reload(), 5000);
+    }}
+  </script>
+</body>
+</html>'''
+    
+    response = HTMLResponse(content=html_content)
+    # Set headers for Lightstream compatibility
+    response.headers["Content-Security-Policy"] = "frame-ancestors *"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    # Explicitly remove X-Frame-Options if present
+    if "X-Frame-Options" in response.headers:
+        del response.headers["X-Frame-Options"]
+    return response
+
 # Kick API Proxy to bypass CORS
 @api_router.get("/kick/channel/{channel_name}")
 async def get_kick_channel(channel_name: str):
