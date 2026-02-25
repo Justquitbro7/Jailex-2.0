@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import "./ChatOverlay.css";
 
 // Platform icons as SVG
@@ -21,6 +22,7 @@ const TimerIcon = () => (
 );
 
 function ChatOverlay() {
+  const { configId } = useParams(); // Get config ID from URL path
   const [messages, setMessages] = useState([]);
   const [configLoaded, setConfigLoaded] = useState(false);
   const [config, setConfig] = useState({
