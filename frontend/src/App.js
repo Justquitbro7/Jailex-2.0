@@ -982,18 +982,32 @@ function App() {
             </div>
 
             <div style={{ marginBottom: "16px" }}>
+              <label>Kick Chatroom ID (required for Kick overlay)</label>
+              <input 
+                type="text" 
+                placeholder="Enter your Kick chatroom ID"
+                value={kickChatroomId}
+                onChange={(e) => setKickChatroomId(e.target.value)}
+                data-testid="kick-chatroom-id-input"
+              />
+              <div className="hint">
+                Find your chatroom ID: Open browser DevTools → Network tab → Visit your Kick channel → Look for a request to "channels/yourname" and find "chatroom.id" in the response
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
               <label>Overlay URL</label>
               <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
                 <input 
                   type="text" 
                   readOnly
-                  value={`${window.location.origin}/overlay?kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`}
+                  value={`${window.location.origin}/overlay?${kickChatroomId ? `chatroomId=${kickChatroomId}&` : ''}kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`}
                   style={{ flex: 1 }}
                   data-testid="overlay-url-input"
                 />
                 <button 
                   onClick={() => {
-                    const url = `${window.location.origin}/overlay?kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
+                    const url = `${window.location.origin}/overlay?${kickChatroomId ? `chatroomId=${kickChatroomId}&` : ''}kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
                     // Fallback copy method for environments where Clipboard API is blocked
                     const textArea = document.createElement('textarea');
                     textArea.value = url;
@@ -1020,7 +1034,7 @@ function App() {
             <div style={{ marginBottom: "16px" }}>
               <button 
                 onClick={() => {
-                  const url = `${window.location.origin}/overlay?kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
+                  const url = `${window.location.origin}/overlay?${kickChatroomId ? `chatroomId=${kickChatroomId}&` : ''}kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
                   window.open(url, '_blank', 'width=400,height=600');
                 }}
                 data-testid="preview-overlay-btn"
