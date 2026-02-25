@@ -177,7 +177,7 @@ function ChatOverlay() {
       if (ws) ws.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [config.kickChannel, config.kickChatroomId, addMessage]);
+  }, [configLoaded, config.kickChannel, config.kickChatroomId, addMessage]);
 
   // Connect to Twitch
   useEffect(() => {
