@@ -36,19 +36,20 @@ function ChatOverlay() {
     bgOpacity: 0.6
   });
 
-  // Load config from short ID, URL params, or localStorage
+  // Load config from short ID (URL path), URL params, or localStorage
   useEffect(() => {
     const loadConfig = async () => {
       const params = new URLSearchParams(window.location.search);
-      const configId = params.get("id");
+      // Check URL path first (e.g., /c/abc123), then query param
+      const urlConfigId = configId || params.get("id");
       
       let newConfig = { ...config };
       
       // If short ID provided, fetch config from server
-      if (configId) {
+      if (urlConfigId) {
         try {
           const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
-          const res = await fetch(`${backendUrl}/api/overlay/config/${configId}`);
+          const res = await fetch(`${backendUrl}/api/overlay/config/${urlConfigId}`);
           if (res.ok) {
             const serverConfig = await res.json();
             newConfig = { ...newConfig, ...serverConfig };
@@ -81,7 +82,7 @@ function ChatOverlay() {
     };
     
     loadConfig();
-  }, []);
+  }, [configId]);
 
   // Add message helper
   const addMessage = useCallback((msg) => {
