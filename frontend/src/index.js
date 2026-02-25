@@ -12,6 +12,8 @@ root.render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/overlay" element={<ChatOverlay />} />
+        <Route path="/overlay/:configId" element={<ChatOverlay />} />
+        <Route path="/c/:configId" element={<ChatOverlay />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
