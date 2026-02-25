@@ -119,6 +119,19 @@ async def serve_static_overlay(config_id: str):
             status_code=404
         )
     
+    # Get config values with defaults
+    max_messages = config.get('maxMessages', 15)
+    message_duration = config.get('messageDuration', 0)
+    font_size = config.get('fontSize', 16)
+    bg_opacity = config.get('bgOpacity', 0.7)
+    show_badges = config.get('showBadges', True)
+    kick_chatroom_id = config.get('kickChatroomId', '')
+    twitch_channel = config.get('twitchChannel', '')
+    twitch_token = config.get('twitchToken', '')
+    
+    # Badge HTML based on settings
+    badge_html = "'<span class=\"platform-badge badge-' + platform + '\">' + (platform === 'kick' ? 'K' : 'T') + '</span>'" if show_badges else "''"
+    
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,9 +163,13 @@ async def serve_static_overlay(config_id: str):
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, {bg_opacity});
       border-radius: 6px;
-      font-size: 16px;
+      font-size: {font_size}px;
+      transition: opacity 0.5s ease;
+    }}
+    .chat-message.fading {{
+      opacity: 0;
     }}
     .platform-badge {{
       width: 20px;
@@ -179,15 +196,37 @@ async def serve_static_overlay(config_id: str):
   </div>
   <script>
     const messagesDiv = document.getElementById('messages');
-    const MAX_MESSAGES = {config.get('maxMessages', 15)};
-    const config = {{"kickChatroomId": "{config.get('kickChatroomId', '')}", "twitchChannel": "{config.get('twitchChannel', '')}", "twitchToken": "{config.get('twitchToken', '')}"}};
+    const MAX_MESSAGES = {max_messages};
+    const MESSAGE_DURATION = {message_duration}; // seconds, 0 = forever
+    const SHOW_BADGES = {str(show_badges).lower()};
+    const config = {{"kickChatroomId": "{kick_chatroom_id}", "twitchChannel": "{twitch_channel}", "twitchToken": "{twitch_token}"}};
 
     function addMessage(platform, username, text) {{
       const div = document.createElement('div');
       div.className = 'chat-message';
-      div.innerHTML = '<span class="platform-badge badge-' + platform + '">' + (platform === 'kick' ? 'K' : 'T') + '</span><span class="username username-' + platform + '">' + username + ':</span><span class="message-text">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+      
+      let badgeHtml = '';
+      if (SHOW_BADGES) {{
+        badgeHtml = '<span class="platform-badge badge-' + platform + '">' + (platform === 'kick' ? 'K' : 'T') + '</span>';
+      }}
+      
+      div.innerHTML = badgeHtml + '<span class="username username-' + platform + '">' + username + ':</span><span class="message-text">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
       messagesDiv.appendChild(div);
-      while (messagesDiv.children.length > MAX_MESSAGES) messagesDiv.removeChild(messagesDiv.firstChild);
+      
+      // Remove old messages if over limit
+      while (messagesDiv.children.length > MAX_MESSAGES) {{
+        messagesDiv.removeChild(messagesDiv.firstChild);
+      }}
+      
+      // Auto-remove message after duration (if set)
+      if (MESSAGE_DURATION > 0) {{
+        setTimeout(() => {{
+          div.classList.add('fading');
+          setTimeout(() => {{
+            if (div.parentNode) div.parentNode.removeChild(div);
+          }}, 500);
+        }}, MESSAGE_DURATION * 1000);
+      }}
     }}
 
     if (config.kickChatroomId) {{
