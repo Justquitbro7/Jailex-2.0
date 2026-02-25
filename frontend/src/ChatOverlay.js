@@ -95,7 +95,7 @@ function ChatOverlay() {
 
   // Connect to Kick
   useEffect(() => {
-    if (!config.kickChannel) return;
+    if (!configLoaded || !config.kickChannel) return;
 
     let ws = null;
     let reconnectTimeout = null;
