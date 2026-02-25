@@ -1068,3 +1068,158 @@ function App() {
 }
 
 export default App;
+
+// OverlayTab component for Lightstream-compatible short URLs
+function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUsername, twitchToken }) {
+  const [shortUrl, setShortUrl] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState("");
+
+  const generateShortUrl = async () => {
+    setIsGenerating(true);
+    setError("");
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
+      const response = await fetch(`${backendUrl}/api/overlay/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kickChannel: kickUsername,
+          kickChatroomId: kickChatroomId,
+          twitchChannel: twitchUsername,
+          twitchToken: twitchToken,
+          maxMessages: 15,
+          showBadges: true,
+          fontSize: 18,
+          bgOpacity: 0.6
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const url = `${window.location.origin}/overlay?id=${data.id}`;
+        setShortUrl(url);
+      } else {
+        setError("Failed to generate URL. Please try again.");
+      }
+    } catch (e) {
+      setError("Network error. Please try again.");
+      console.error(e);
+    }
+    
+    setIsGenerating(false);
+  };
+
+  const copyToClipboard = (text) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert("URL copied to clipboard!");
+    } catch (err) {
+      prompt("Copy this URL:", text);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  return (
+    <div className="panel">
+      <h2>Chat Overlay</h2>
+      <div className="hint" style={{ marginBottom: "16px" }}>
+        Generate a short URL for Lightstream or OBS Browser Source.
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <label>Kick Chatroom ID (required for Kick)</label>
+        <input 
+          type="text" 
+          placeholder="Enter your Kick chatroom ID"
+          value={kickChatroomId}
+          onChange={(e) => setKickChatroomId(e.target.value)}
+          data-testid="kick-chatroom-id-input"
+        />
+        <div className="hint">
+          Find your chatroom ID: Open browser DevTools → Network tab → Visit your Kick channel → Look for "chatroom.id" in the response
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <button 
+          onClick={generateShortUrl}
+          disabled={isGenerating}
+          data-testid="generate-short-url-btn"
+          style={{ 
+            background: "linear-gradient(135deg, rgba(255,122,24,0.9), rgba(0,200,255,0.7))",
+            padding: "12px 24px"
+          }}
+        >
+          {isGenerating ? "Generating..." : "Generate Lightstream URL"}
+        </button>
+        {error && <p style={{ color: "#ff7a18", fontSize: "12px", marginTop: "6px" }}>{error}</p>}
+      </div>
+
+      {shortUrl && (
+        <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(83,252,24,0.1)", borderRadius: "8px", border: "1px solid rgba(83,252,24,0.3)" }}>
+          <label style={{ color: "#53fc18", fontWeight: "bold" }}>✓ Short URL for Lightstream</label>
+          <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+            <input 
+              type="text" 
+              readOnly
+              value={shortUrl}
+              style={{ flex: 1, background: "rgba(0,0,0,0.5)" }}
+              data-testid="short-overlay-url-input"
+            />
+            <button 
+              onClick={() => copyToClipboard(shortUrl)}
+              data-testid="copy-short-url-btn"
+            >
+              Copy
+            </button>
+          </div>
+          <div className="hint" style={{ marginTop: "8px" }}>
+            This short URL saves your settings and works with Lightstream!
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginBottom: "16px" }}>
+        <button 
+          onClick={() => {
+            const url = shortUrl || `${window.location.origin}/overlay?${kickChatroomId ? `chatroomId=${kickChatroomId}&` : ''}kick=${kickUsername}&twitch=${twitchUsername}${twitchToken ? `&token=${twitchToken}` : ''}`;
+            window.open(url, '_blank', 'width=400,height=600');
+          }}
+          data-testid="preview-overlay-btn"
+        >
+          Preview Overlay
+        </button>
+      </div>
+
+      <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
+
+      <h3 style={{ marginTop: 0 }}>Lightstream Setup</h3>
+      <ol style={{ fontSize: "13px", opacity: 0.9, paddingLeft: "20px", lineHeight: "1.8" }}>
+        <li>Click <strong>"Generate Lightstream URL"</strong> above</li>
+        <li>Copy the short URL</li>
+        <li>In Lightstream, go to <strong>Widgets</strong> → <strong>Custom URL</strong></li>
+        <li>Paste the URL and save</li>
+        <li>Position the overlay on your stream</li>
+      </ol>
+
+      <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
+
+      <h3>OBS Setup</h3>
+      <ol style={{ fontSize: "13px", opacity: 0.9, paddingLeft: "20px", lineHeight: "1.8" }}>
+        <li>In OBS, click <strong>+</strong> under Sources</li>
+        <li>Select <strong>Browser</strong></li>
+        <li>Paste the short URL</li>
+        <li>Set Width: <strong>400</strong>, Height: <strong>600</strong></li>
+        <li>Click OK</li>
+      </ol>
+    </div>
+  );
+}
