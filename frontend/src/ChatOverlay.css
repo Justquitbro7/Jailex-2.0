@@ -1,0 +1,88 @@
+/* Chat Overlay Styles - For OBS Browser Source */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent !important;
+  overflow: hidden;
+}
+
+.chat-overlay {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  font-size: var(--font-size, 18px);
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, var(--bg-opacity, 0.6));
+  border-radius: 6px;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.message-badge {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.platform-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.kick-icon {
+  fill: #53fc18;
+}
+
+.twitch-icon {
+  fill: #9146FF;
+}
+
+.timer-icon {
+  fill: #ff7a18;
+}
+
+.message-username {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.message-separator {
+  color: #ffffff;
+  margin-right: 4px;
+}
+
+.message-text {
+  color: #ffffff;
+  word-break: break-word;
+}
+
+/* Scrollbar hiding for clean overlay look */
+.chat-messages::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-messages {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
