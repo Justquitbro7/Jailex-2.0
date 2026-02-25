@@ -979,24 +979,28 @@ function App() {
             <hr style={{ margin: "16px 0", borderColor: "rgba(255,255,255,0.2)" }} />
 
             <h3>Twitch</h3>
-            <label>Twitch Username</label>
+            <label>Twitch Channel Name</label>
             <input 
               type="text" 
               value={twitchUsername}
               onChange={(e) => setTwitchUsername(e.target.value)}
+              placeholder="Your Twitch channel name"
               data-testid="twitch-username-input"
             />
 
-            <label style={{ marginTop: "8px" }}>Twitch OAuth Token (future use)</label>
+            <label style={{ marginTop: "8px" }}>Twitch OAuth Token</label>
             <input 
               type="password" 
-              placeholder="Not used yet"
+              placeholder="oauth:xxxxxxxxxxxxxx"
               value={twitchToken}
               onChange={(e) => setTwitchToken(e.target.value)}
               data-testid="twitch-token-input"
             />
+            <div className="hint">
+              Get your token at <a href="https://twitchapps.com/tmi/" target="_blank" rel="noopener noreferrer" style={{ color: "#00c8ff" }}>twitchapps.com/tmi</a>
+            </div>
 
-            <div style={{ marginTop: "8px" }}>
+            <div style={{ marginTop: "12px" }}>
               <label>
                 <input 
                   type="checkbox" 
@@ -1004,19 +1008,24 @@ function App() {
                   onChange={(e) => setTwitchEnabled(e.target.checked)}
                   data-testid="twitch-enable-checkbox"
                 />
-                Enable Twitch (UI only for now)
+                Enable Twitch Chat
               </label>
               <span 
-                className={`status-pill ${twitchEnabled ? "status-on" : "status-off"}`}
+                className={`status-pill ${twitchConnected ? "status-on" : "status-off"}`}
                 data-testid="twitch-status-pill"
               >
-                {twitchEnabled ? "Enabled (UI only)" : "Disabled"}
+                {twitchStatus}
               </span>
             </div>
 
+            {twitchEnabled && !twitchToken && (
+              <p style={{ color: "#ff7a18", fontSize: "12px", marginTop: "6px" }}>
+                Please enter your OAuth token to connect to Twitch chat.
+              </p>
+            )}
+
             <p style={{ marginTop: "12px", fontSize: "12px", opacity: 0.8 }}>
-              For now, Kick is connected automatically using the static username above.
-              Twitch controls are UI-only until we wire in the actual connection.
+              Kick is connected automatically. For Twitch, enter your channel name and OAuth token, then enable to start receiving chat messages.
             </p>
           </div>
         )}
