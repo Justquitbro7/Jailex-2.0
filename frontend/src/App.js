@@ -77,12 +77,13 @@ function App() {
       }
       setVoices(v);
       if (!kickVoiceName) setKickVoiceName(v[0]?.name || "");
+      if (!twitchVoiceName) setTwitchVoiceName(v[0]?.name || "");
       if (!timerVoiceName) setTimerVoiceName(v[1]?.name || v[0]?.name || "");
     };
 
     window.speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
-  }, [kickVoiceName, timerVoiceName]);
+  }, [kickVoiceName, twitchVoiceName, timerVoiceName]);
 
   // Kick connection
   useEffect(() => {
