@@ -80,15 +80,30 @@ function ChatOverlay() {
 
     const connectKick = async () => {
       try {
-        // Use backend proxy to bypass CORS
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
-        const res = await fetch(`${backendUrl}/api/kick/channel/${config.kickChannel}`);
-        const data = await res.json();
-        const chatroomId = data.chatroom?.id;
+        let chatroomId = config.kickChatroomId;
+        
+        // If no chatroomId provided, try to get it
+        if (!chatroomId) {
+          // Try backend proxy first
+          const backendUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+          try {
+            const res = await fetch(`${backendUrl}/api/kick/channel/${config.kickChannel}`);
+            const data = await res.json();
+            chatroomId = data.chatroom?.id;
+          } catch (e) {
+            console.error("Backend proxy failed:", e);
+          }
+        }
 
         if (!chatroomId) {
-          console.error("Could not get Kick chatroom ID");
-          reconnectTimeout = setTimeout(connectKick, 10000);
+          console.error("Could not get Kick chatroom ID. Please provide chatroomId in URL params.");
+          // Show a message for debugging
+          addMessage({
+            platform: "kick",
+            username: "System",
+            message: `Unable to connect to Kick channel "${config.kickChannel}". Try adding chatroomId param to URL.`,
+            id: "system-error-" + Date.now()
+          });
           return;
         }
 
@@ -97,7 +112,7 @@ function ChatOverlay() {
         );
 
         ws.onopen = () => {
-          console.log("Kick connected");
+          console.log("Kick connected to chatroom:", chatroomId);
         };
 
         ws.onmessage = (event) => {
@@ -140,7 +155,7 @@ function ChatOverlay() {
       if (ws) ws.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [config.kickChannel, addMessage]);
+  }, [config.kickChannel, config.kickChatroomId, addMessage]);
 
   // Connect to Twitch
   useEffect(() => {
