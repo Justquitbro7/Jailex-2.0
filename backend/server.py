@@ -47,9 +47,10 @@ class OverlayConfigCreate(BaseModel):
     twitchChannel: Optional[str] = ""
     twitchToken: Optional[str] = ""
     maxMessages: Optional[int] = 15
+    messageDuration: Optional[int] = 0  # seconds, 0 = forever
     showBadges: Optional[bool] = True
-    fontSize: Optional[int] = 18
-    bgOpacity: Optional[float] = 0.6
+    fontSize: Optional[int] = 16
+    bgOpacity: Optional[float] = 0.7
 
 class OverlayConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -60,9 +61,10 @@ class OverlayConfig(BaseModel):
     twitchChannel: str = ""
     twitchToken: str = ""
     maxMessages: int = 15
+    messageDuration: int = 0
     showBadges: bool = True
-    fontSize: int = 18
-    bgOpacity: float = 0.6
+    fontSize: int = 16
+    bgOpacity: float = 0.7
     createdAt: str = ""
 
 def generate_short_id(length=6):
