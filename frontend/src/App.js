@@ -1098,8 +1098,8 @@ function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUse
       
       if (response.ok) {
         const data = await response.json();
-        // Use clean URL format without query params: /c/abc123
-        const url = `${window.location.origin}/c/${data.id}`;
+        // Use API endpoint that serves HTML with proper Lightstream headers
+        const url = `${window.location.origin}/api/stream/${data.id}`;
         setShortUrl(url);
       } else {
         setError("Failed to generate URL. Please try again.");
