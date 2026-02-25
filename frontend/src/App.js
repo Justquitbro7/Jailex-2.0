@@ -1098,7 +1098,8 @@ function OverlayTab({ kickUsername, kickChatroomId, setKickChatroomId, twitchUse
       
       if (response.ok) {
         const data = await response.json();
-        const url = `${window.location.origin}/overlay?id=${data.id}`;
+        // Use clean URL format without query params: /c/abc123
+        const url = `${window.location.origin}/c/${data.id}`;
         setShortUrl(url);
       } else {
         setError("Failed to generate URL. Please try again.");
